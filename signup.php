@@ -38,7 +38,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Signup - BENTA</title>
-    <link rel="stylesheet" href="assets/styles.css">
+
 </head>
 <body>
     <h1>Create Account</h1>
@@ -66,15 +66,3 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     <p>Already have an account? <a href="login.php">Login</a></p>
     <script src="assets/app.js"></script>
 </body>
-<style>
-    body{font-family:Arial,Helvetica,sans-serif;max-width:480px;margin:40px auto;padding:0 16px}
-    form{display:flex;flex-direction:column;gap:12px}
-    label{display:flex;flex-direction:column;gap:6px}
-    input{padding:10px;border:1px solid #ccc;border-radius:6px}
-    button{padding:10px 14px;border:0;background:#1f7aec;color:#fff;border-radius:6px;cursor:pointer}
-    .alert-error{background:#ffe8e8;border:1px solid #ff9b9b;padding:10px;border-radius:6px;margin-bottom:12px}
-    a{color:#1f7aec}
-</style>
-</html>
-
-

@@ -58,7 +58,7 @@ $items = $stmt->fetchAll();
                         <td><?php echo (int)$it['stock']; ?></td>
                         <td>
                             <a class="btn btn-small" href="item_edit.php?id=<?php echo (int)$it['id']; ?>">Edit</a>
-                            <form method="post" action="item_delete.php" style="display:inline;" onsubmit="return confirm('Delete this item?');">
+                                <form method="post" action="item_delete.php" onsubmit="return confirm('Delete this item?');">
                                 <input type="hidden" name="id" value="<?php echo (int)$it['id']; ?>">
                                 <button class="btn btn-small btn-danger" type="submit">Delete</button>
                             </form>
@@ -70,17 +70,6 @@ $items = $stmt->fetchAll();
     </div>
 
     <script src="assets/app.js"></script>
-    <style>
-        body{font-family:Arial,Helvetica,sans-serif;max-width:980px;margin:20px auto;padding:0 16px}
-        .btn{background:#1f7aec;color:#fff;padding:8px 12px;border-radius:6px;text-decoration:none;border:0;display:inline-block}
-        .btn-small{padding:6px 10px;font-size:14px}
-        .btn-outline{background:#fff;color:#1f7aec;border:1px solid #1f7aec}
-        .btn-danger{background:#e22;color:#fff}
-        .card{background:#fff;border:1px solid #eee;border-radius:8px;overflow:hidden}
-        .table{width:100%;border-collapse:collapse}
-        .table th,.table td{padding:10px;border-bottom:1px solid #eee;text-align:left}
-        .table th{background:#fafafa}
-    </style>
 </body>
 </html>
 

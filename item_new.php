@@ -31,7 +31,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>New Item - BENTA</title>
-    <link rel="stylesheet" href="assets/styles.css">
+
 </head>
 <body>
     <h1>Add Item</h1>
@@ -60,17 +60,4 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         <button type="submit">Save</button>
         <a class="btn btn-outline" href="items.php">Cancel</a>
     </form>
-    <style>
-        body{font-family:Arial,Helvetica,sans-serif;max-width:600px;margin:30px auto;padding:0 16px}
-        form{display:flex;flex-direction:column;gap:12px}
-        label{display:flex;flex-direction:column;gap:6px}
-        input{padding:10px;border:1px solid #ccc;border-radius:6px}
-        button{padding:10px 14px;border:0;background:#1f7aec;color:#fff;border-radius:6px;cursor:pointer}
-        .btn{background:#1f7aec;color:#fff;padding:8px 12px;border-radius:6px;text-decoration:none;border:0;display:inline-block}
-        .btn-outline{background:#fff;color:#1f7aec;border:1px solid #1f7aec}
-        .alert-error{background:#ffe8e8;border:1px solid #ff9b9b;padding:10px;border-radius:6px;margin-bottom:12px}
-    </style>
-</body>
-</html>
-
-
+   

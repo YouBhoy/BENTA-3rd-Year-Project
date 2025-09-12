@@ -40,10 +40,10 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Item - BENTA</title>
-    <link rel="stylesheet" href="assets/styles.css">
+
     <script>
     </script>
-    <style>
+
         body{font-family:Arial,Helvetica,sans-serif;max-width:600px;margin:30px auto;padding:0 16px}
         form{display:flex;flex-direction:column;gap:12px}
         label{display:flex;flex-direction:column;gap:6px}

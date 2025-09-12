@@ -88,7 +88,7 @@ $rows = $stmt->fetchAll();
                     <th>Date</th>
                     <th>Category</th>
                     <th>Description</th>
-                    <th style="text-align:right;">Amount</th>
+                        <th>Amount</th>
                 </tr>
             </thead>
             <tbody>
@@ -100,25 +100,14 @@ $rows = $stmt->fetchAll();
                         <td><?php echo e($r['expense_date']); ?></td>
                         <td><?php echo e($r['category']); ?></td>
                         <td><?php echo e($r['description'] ?? ''); ?></td>
-                        <td style="text-align:right;">₱<?php echo number_format((float)$r['amount'], 2); ?></td>
+                            <td>₱<?php echo number_format((float)$r['amount'], 2); ?></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
     </section>
 
-    <style>
-        body{font-family:Arial,Helvetica,sans-serif;max-width:980px;margin:20px auto;padding:0 16px}
-        .btn{background:#1f7aec;color:#fff;padding:8px 12px;border-radius:6px;text-decoration:none;border:0;display:inline-block}
-        .btn-outline{background:#fff;color:#1f7aec;border:1px solid #1f7aec}
-        .card{background:#fff;border:1px solid #eee;border-radius:8px;overflow:hidden}
-        .alert-error{background:#ffe8e8;border:1px solid #ff9b9b;padding:10px;border-radius:6px;margin:12px 0}
-        .table{width:100%;border-collapse:collapse}
-        .table th,.table td{padding:10px;border-bottom:1px solid #eee;text-align:left}
-        .table th{background:#fafafa}
-        input,select,button{padding:10px;border:1px solid #ccc;border-radius:6px}
-        button{background:#1f7aec;color:#fff;border:0;cursor:pointer}
-    </style>
+
 </body>
 </html>
 

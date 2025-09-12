@@ -90,12 +90,12 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>New Sale - BENTA</title>
-    <link rel="stylesheet" href="assets/styles.css">
+
 </head>
 <body>
-    <header style="display:flex;justify-content:space-between;align-items:center;margin:20px 0;">
+    <header>
         <h1>New Sale</h1>
-        <nav style="display:flex;gap:10px;align-items:center;">
+    <nav>
             <a href="items.php" class="btn">Inventory</a>
             <a href="transactions.php" class="btn">Sales</a>
             <a href="logout.php" class="btn btn-outline">Logout</a>
@@ -114,10 +114,10 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 
     <form method="post" id="sale-form">
         <div id="lines"></div>
-        <div style="margin:10px 0;">
+    <div>
             <button type="button" class="btn" onclick="addLine()">Add Item</button>
         </div>
-        <div class="card" style="padding:12px;margin:12px 0;display:flex;justify-content:space-between;">
+    <div class="card">
             <strong>Total:</strong>
             <strong id="total">₱0.00</strong>
         </div>
@@ -126,7 +126,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     </form>
 
     <template id="line-template">
-        <div class="line" style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+    <div class="line">
             <select name="item_id[]" class="item-select" required>
                 <option value="">Select item</option>
                 <?php foreach ($items as $it): ?>
@@ -135,7 +135,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                     </option>
                 <?php endforeach; ?>
             </select>
-            <input type="number" name="quantity[]" class="qty" min="1" value="1" required style="width:90px">
+            <input type="number" name="quantity[]" class="qty" min="1" value="1" required>
             <span class="line-total">₱0.00</span>
             <button type="button" class="btn btn-outline" onclick="removeLine(this)">Remove</button>
         </div>
@@ -177,15 +177,4 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     addLine();
     </script>
 
-    <style>
-        body{font-family:Arial,Helvetica,sans-serif;max-width:900px;margin:20px auto;padding:0 16px}
-        .btn{background:#1f7aec;color:#fff;padding:8px 12px;border-radius:6px;text-decoration:none;border:0;display:inline-block}
-        .btn-outline{background:#fff;color:#1f7aec;border:1px solid #1f7aec}
-        .card{background:#fff;border:1px solid #eee;border-radius:8px}
-        .alert-error{background:#ffe8e8;border:1px solid #ff9b9b;padding:10px;border-radius:6px;margin-bottom:12px}
-        select,input{padding:8px;border:1px solid #ccc;border-radius:6px}
-    </style>
-</body>
-</html>
-
-
+ 
