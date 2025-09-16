@@ -67,7 +67,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 
             // Insert lines and deduct stock
             $insLine = $pdo->prepare('INSERT INTO transaction_items (transaction_id, item_id, quantity, unit_price, line_total) VALUES (?, ?, ?, ?, ?)');
-            $updStock = $pdo->prepare('UPDATE items SET stock = stock - ? WHERE id = ? AND user_id = ?');
+            $updStock = $pdo->prepare('UPDATE items SET stock = stock - ?, last_stock_update = NOW() WHERE id = ? AND user_id = ?');
             foreach ($resolved as $r) {
                 $insLine->execute([$txId, $r['item_id'], $r['quantity'], $r['unit_price'], $r['line_total']]);
                 $updStock->execute([$r['quantity'], $r['item_id'], $uid]);

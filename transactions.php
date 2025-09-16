@@ -7,9 +7,65 @@ ensure_authenticated();
 $pdo = get_pdo();
 $uid = current_user_id();
 
-$stmt = $pdo->prepare('SELECT id, total_amount, created_at FROM transactions WHERE user_id = ? ORDER BY created_at DESC');
-$stmt->execute([$uid]);
-$rows = $stmt->fetchAll();
+// Determine filter type and period
+$filter = $_GET['filter'] ?? 'all';
+$period = $_GET['period'] ?? '';
+
+$whereClause = 'WHERE user_id = ?';
+$params = [$uid];
+
+switch ($filter) {
+    case 'day':
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $period)) {
+            $whereClause .= ' AND DATE(created_at) = ?';
+            $params[] = $period;
+        } else {
+            $period = date('Y-m-d');
+            $whereClause .= ' AND DATE(created_at) = ?';
+            $params[] = $period;
+        }
+        break;
+    case 'week':
+        if (preg_match('/^\d{4}-W\d{2}$/', $period)) {
+            $start = date('Y-m-d', strtotime($period . '1'));
+            $end = date('Y-m-d', strtotime($period . '7'));
+            $whereClause .= ' AND DATE(created_at) >= ? AND DATE(created_at) <= ?';
+            $params[] = $start;
+            $params[] = $end;
+        } else {
+            $period = date('Y-\WW');
+            $start = date('Y-m-d', strtotime($period . '1'));
+            $end = date('Y-m-d', strtotime($period . '7'));
+            $whereClause .= ' AND DATE(created_at) >= ? AND DATE(created_at) <= ?';
+            $params[] = $start;
+            $params[] = $end;
+        }
+        break;
+    case 'month':
+        if (preg_match('/^\d{4}-\d{2}$/', $period)) {
+            $start = $period . '-01';
+            $end = date('Y-m-t', strtotime($start));
+            $whereClause .= ' AND DATE(created_at) >= ? AND DATE(created_at) <= ?';
+            $params[] = $start;
+            $params[] = $end;
+        } else {
+            $period = date('Y-m');
+            $start = $period . '-01';
+            $end = date('Y-m-t', strtotime($start));
+            $whereClause .= ' AND DATE(created_at) >= ? AND DATE(created_at) <= ?';
+            $params[] = $start;
+            $params[] = $end;
+        }
+        break;
+}
+
+$stmt = $pdo->prepare("SELECT id, total_amount, created_at FROM transactions $whereClause ORDER BY created_at DESC");
+$stmt->execute($params);
+$transactions = $stmt->fetchAll();
+
+// Calculate totals for the filtered period
+$totalSales = array_sum(array_column($transactions, 'total_amount'));
+$totalTransactions = count($transactions);
 
 ?>
 <!DOCTYPE html>
@@ -22,7 +78,7 @@ $rows = $stmt->fetchAll();
 </head>
 <body>
     <header style="display:flex;justify-content:space-between;align-items:center;margin:20px 0;">
-        <h1>Sales</h1>
+        <h1>Sales History</h1>
         <nav style="display:flex;gap:10px;align-items:center;">
             <a href="items.php" class="btn">Inventory</a>
             <a href="transaction_new.php" class="btn">New Sale</a>
@@ -31,38 +87,124 @@ $rows = $stmt->fetchAll();
         </nav>
     </header>
 
-    <div class="card">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Date</th>
-                    <th>Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (!$rows): ?>
-                    <tr><td colspan="3" style="text-align:center;color:#777;">No sales yet.</td></tr>
-                <?php endif; ?>
-                <?php foreach ($rows as $r): ?>
-                    <tr>
-                        <td>#<?php echo (int)$r['id']; ?></td>
-                        <td><?php echo e($r['created_at']); ?></td>
-                        <td>₱<?php echo number_format((float)$r['total_amount'], 2); ?></td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+    <form method="get" style="margin-bottom:16px;display:flex;gap:8px;align-items:end;flex-wrap:wrap;">
+        <label>Filter
+            <select name="filter" onchange="updatePeriodInput()">
+                <option value="all" <?php echo $filter === 'all' ? 'selected' : ''; ?>>All Sales</option>
+                <option value="day" <?php echo $filter === 'day' ? 'selected' : ''; ?>>Day</option>
+                <option value="week" <?php echo $filter === 'week' ? 'selected' : ''; ?>>Week</option>
+                <option value="month" <?php echo $filter === 'month' ? 'selected' : ''; ?>>Month</option>
+            </select>
+        </label>
+        <label id="period-label" style="<?php echo $filter === 'all' ? 'display:none;' : ''; ?>">Period
+            <input type="date" name="period" id="period-input" value="<?php echo $filter === 'day' ? $period : ($filter === 'month' ? $period . '-01' : ''); ?>">
+        </label>
+        <button type="submit">Filter</button>
+    </form>
+
+    <div class="card" style="padding:16px;margin-bottom:16px;display:flex;gap:20px;flex-wrap:wrap;">
+        <div class="metric">
+            <div class="label">Total Sales</div>
+            <div class="value">₱<?php echo number_format($totalSales, 2); ?></div>
+        </div>
+        <div class="metric">
+            <div class="label">Transactions</div>
+            <div class="value"><?php echo $totalTransactions; ?></div>
+        </div>
+        <div class="metric">
+            <div class="label">Average Sale</div>
+            <div class="value">₱<?php echo $totalTransactions > 0 ? number_format($totalSales / $totalTransactions, 2) : '0.00'; ?></div>
+        </div>
     </div>
+
+    <div class="card">
+        <?php if (!$transactions): ?>
+            <div style="text-align:center;color:#777;padding:40px;">No sales found for the selected period.</div>
+        <?php else: ?>
+            <?php foreach ($transactions as $tx): ?>
+                <div class="transaction-card">
+                    <div class="transaction-header">
+                        <div>
+                            <strong>Transaction #<?php echo (int)$tx['id']; ?></strong>
+                            <span style="color:#666;margin-left:10px;"><?php echo date('M j, Y H:i', strtotime($tx['created_at'])); ?></span>
+                        </div>
+                        <div class="transaction-total">₱<?php echo number_format((float)$tx['total_amount'], 2); ?></div>
+                    </div>
+                    
+                    <?php
+                    // Get transaction items
+                    $stmt = $pdo->prepare('SELECT ti.quantity, ti.unit_price, ti.line_total, i.name FROM transaction_items ti JOIN items i ON ti.item_id = i.id WHERE ti.transaction_id = ? ORDER BY ti.id');
+                    $stmt->execute([$tx['id']]);
+                    $items = $stmt->fetchAll();
+                    ?>
+                    
+                    <div class="transaction-items">
+                        <?php foreach ($items as $item): ?>
+                            <div class="transaction-item">
+                                <span class="item-name"><?php echo e($item['name']); ?></span>
+                                <span class="item-qty">× <?php echo (int)$item['quantity']; ?></span>
+                                <span class="item-price">@ ₱<?php echo number_format((float)$item['unit_price'], 2); ?></span>
+                                <span class="item-total">₱<?php echo number_format((float)$item['line_total'], 2); ?></span>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
+    </div>
+
+    <script>
+    function updatePeriodInput() {
+        const filter = document.querySelector('select[name="filter"]').value;
+        const input = document.getElementById('period-input');
+        const label = document.getElementById('period-label');
+        
+        if (filter === 'all') {
+            label.style.display = 'none';
+        } else {
+            label.style.display = 'flex';
+            
+            switch(filter) {
+                case 'day':
+                    input.type = 'date';
+                    input.name = 'period';
+                    label.querySelector('span').textContent = 'Date:';
+                    break;
+                case 'week':
+                    input.type = 'week';
+                    input.name = 'period';
+                    label.querySelector('span').textContent = 'Week:';
+                    break;
+                case 'month':
+                    input.type = 'month';
+                    input.name = 'period';
+                    label.querySelector('span').textContent = 'Month:';
+                    break;
+            }
+        }
+    }
+    </script>
 
     <style>
         body{font-family:Arial,Helvetica,sans-serif;max-width:980px;margin:20px auto;padding:0 16px}
         .btn{background:#1f7aec;color:#fff;padding:8px 12px;border-radius:6px;text-decoration:none;border:0;display:inline-block}
         .btn-outline{background:#fff;color:#1f7aec;border:1px solid #1f7aec}
         .card{background:#fff;border:1px solid #eee;border-radius:8px;overflow:hidden}
-        .table{width:100%;border-collapse:collapse}
-        .table th,.table td{padding:10px;border-bottom:1px solid #eee;text-align:left}
-        .table th{background:#fafafa}
+        .metric{min-width:150px;padding:12px;border:1px solid #eee;border-radius:8px;background:#fafafa;text-align:center}
+        .metric .label{color:#666;font-size:14px;margin-bottom:4px}
+        .metric .value{font-size:20px;font-weight:bold}
+        .transaction-card{border:1px solid #eee;border-radius:8px;margin-bottom:16px;overflow:hidden}
+        .transaction-header{background:#f8f9fa;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee}
+        .transaction-total{font-size:18px;font-weight:bold;color:#1f7aec}
+        .transaction-items{padding:12px 16px}
+        .transaction-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0}
+        .transaction-item:last-child{border-bottom:none}
+        .item-name{flex:1;font-weight:500}
+        .item-qty{color:#666;margin:0 8px}
+        .item-price{color:#666;margin:0 8px}
+        .item-total{font-weight:bold;color:#0a6}
+        input,select,button{padding:8px;border:1px solid #ccc;border-radius:6px}
+        label{display:flex;flex-direction:column;gap:4px;font-weight:500}
     </style>
 </body>
 </html>

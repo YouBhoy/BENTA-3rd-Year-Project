@@ -19,7 +19,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     if ($stock < 0) { $errors[] = 'Stock must be non-negative'; }
 
     if (!$errors) {
-        $stmt = $pdo->prepare('INSERT INTO items (user_id, name, sku, price, stock) VALUES (?, ?, ?, ?, ?)');
+        $stmt = $pdo->prepare('INSERT INTO items (user_id, name, sku, price, stock, last_stock_update) VALUES (?, ?, ?, ?, ?, NOW())');
         $stmt->execute([$uid, $name, $sku ?: null, $price, $stock]);
         redirect('items.php');
     }

@@ -16,6 +16,8 @@ $stmt->execute([$id, $uid]);
 $item = $stmt->fetch();
 if (!$item) { redirect('items.php'); }
 
+$oldStock = (int)$item['stock'];
+
 $errors = [];
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     $name = trim($_POST['name'] ?? '');
@@ -28,7 +30,13 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     if ($stock < 0) { $errors[] = 'Stock must be non-negative'; }
 
     if (!$errors) {
-        $stmt = $pdo->prepare('UPDATE items SET name = ?, sku = ?, price = ?, stock = ? WHERE id = ? AND user_id = ?');
+        // Only update stock timestamp if stock changed
+        $stockChanged = ($oldStock !== $stock);
+        if ($stockChanged) {
+            $stmt = $pdo->prepare('UPDATE items SET name = ?, sku = ?, price = ?, stock = ?, last_stock_update = NOW() WHERE id = ? AND user_id = ?');
+        } else {
+            $stmt = $pdo->prepare('UPDATE items SET name = ?, sku = ?, price = ?, stock = ? WHERE id = ? AND user_id = ?');
+        }
         $stmt->execute([$name, $sku ?: null, $price, $stock, $id, $uid]);
         redirect('items.php');
     }
