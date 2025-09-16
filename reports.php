@@ -8,8 +8,8 @@ $pdo = get_pdo();
 $uid = current_user_id();
 
 // Determine filter type and period
-$filter = $_GET['filter'] ?? 'month';
-$period = $_GET['period'] ?? date('Y-m');
+$filter = $_GET['filter'] ?? 'day';
+$period = $_GET['period'] ?? date('Y-m-d');
 
 $start = '';
 $end = '';
@@ -99,43 +99,78 @@ $net = $income - $expenses;
                 <option value="year" <?php echo $filter === 'year' ? 'selected' : ''; ?>>Year</option>
             </select>
         </label>
-        <label id="period-label">Period
-            <input type="date" name="period" id="period-input" value="<?php echo $filter === 'day' ? $period : ($filter === 'month' ? $period . '-01' : ($filter === 'year' ? $period . '-01-01' : '')); ?>">
+        <label id="period-label" style="<?php echo $filter === 'year' ? '' : ''; ?>">
+            <span id="period-text">Period</span>
+            <input type="date" name="period" id="period-input" value="<?php echo $filter === 'day' ? $period : ($filter === 'month' ? $period . '-01' : ($filter === 'week' ? '' : ($filter === 'year' ? $period . '-01-01' : ''))); ?>">
         </label>
         <button type="submit">Generate</button>
     </form>
+    
+    <?php if ($filter !== 'all'): ?>
+        <div style="background:#f0f8ff;padding:8px;border-radius:4px;margin-bottom:16px;font-size:14px;">
+            <strong>Filter Active:</strong> <?php echo ucfirst($filter); ?> 
+            <?php if ($period): ?>
+                - <?php echo e($period); ?>
+            <?php endif; ?>
+            <?php if ($start && $end): ?>
+                <br><strong>Date Range:</strong> <?php echo e($start); ?> to <?php echo e($end); ?>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
 
     <script>
     function updatePeriodInput() {
         const filter = document.querySelector('select[name="filter"]').value;
         const input = document.getElementById('period-input');
         const label = document.getElementById('period-label');
+        const text = document.getElementById('period-text');
         
         switch(filter) {
             case 'day':
                 input.type = 'date';
                 input.name = 'period';
-                label.textContent = 'Date:';
+                text.textContent = 'Date:';
+                if (!input.value) input.value = new Date().toISOString().split('T')[0];
                 break;
             case 'week':
                 input.type = 'week';
                 input.name = 'period';
-                label.textContent = 'Week:';
+                text.textContent = 'Week:';
+                if (!input.value) {
+                    const now = new Date();
+                    const year = now.getFullYear();
+                    const week = getWeekNumber(now);
+                    input.value = year + '-W' + String(week).padStart(2, '0');
+                }
                 break;
             case 'month':
                 input.type = 'month';
                 input.name = 'period';
-                label.textContent = 'Month:';
+                text.textContent = 'Month:';
+                if (!input.value) {
+                    const now = new Date();
+                    input.value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+                }
                 break;
             case 'year':
                 input.type = 'number';
                 input.name = 'period';
                 input.min = '2020';
                 input.max = '2030';
-                label.textContent = 'Year:';
+                text.textContent = 'Year:';
+                if (!input.value) input.value = new Date().getFullYear();
                 break;
         }
     }
+    
+    function getWeekNumber(date) {
+        const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+        const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+        return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+    }
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', updatePeriodInput);
     </script>
 
     <section class="card" style="padding:16px;">

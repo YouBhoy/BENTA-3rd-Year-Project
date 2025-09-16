@@ -96,11 +96,22 @@ $totalTransactions = count($transactions);
                 <option value="month" <?php echo $filter === 'month' ? 'selected' : ''; ?>>Month</option>
             </select>
         </label>
-        <label id="period-label" style="<?php echo $filter === 'all' ? 'display:none;' : ''; ?>">Period
-            <input type="date" name="period" id="period-input" value="<?php echo $filter === 'day' ? $period : ($filter === 'month' ? $period . '-01' : ''); ?>">
+        <label id="period-label" style="<?php echo $filter === 'all' ? 'display:none;' : ''; ?>">
+            <span id="period-text">Period</span>
+            <input type="date" name="period" id="period-input" value="<?php echo $filter === 'day' ? $period : ($filter === 'month' ? $period . '-01' : ($filter === 'week' ? '' : '')); ?>">
         </label>
         <button type="submit">Filter</button>
     </form>
+    
+    <?php if ($filter !== 'all'): ?>
+        <div style="background:#f0f8ff;padding:8px;border-radius:4px;margin-bottom:16px;font-size:14px;">
+            <strong>Filter Active:</strong> <?php echo ucfirst($filter); ?> 
+            <?php if ($period): ?>
+                - <?php echo e($period); ?>
+            <?php endif; ?>
+            <br><strong>Found:</strong> <?php echo $totalTransactions; ?> transactions, Total: ₱<?php echo number_format($totalSales, 2); ?>
+        </div>
+    <?php endif; ?>
 
     <div class="card" style="padding:16px;margin-bottom:16px;display:flex;gap:20px;flex-wrap:wrap;">
         <div class="metric">
@@ -158,6 +169,7 @@ $totalTransactions = count($transactions);
         const filter = document.querySelector('select[name="filter"]').value;
         const input = document.getElementById('period-input');
         const label = document.getElementById('period-label');
+        const text = document.getElementById('period-text');
         
         if (filter === 'all') {
             label.style.display = 'none';
@@ -168,21 +180,41 @@ $totalTransactions = count($transactions);
                 case 'day':
                     input.type = 'date';
                     input.name = 'period';
-                    label.querySelector('span').textContent = 'Date:';
+                    text.textContent = 'Date:';
+                    if (!input.value) input.value = new Date().toISOString().split('T')[0];
                     break;
                 case 'week':
                     input.type = 'week';
                     input.name = 'period';
-                    label.querySelector('span').textContent = 'Week:';
+                    text.textContent = 'Week:';
+                    if (!input.value) {
+                        const now = new Date();
+                        const year = now.getFullYear();
+                        const week = getWeekNumber(now);
+                        input.value = year + '-W' + String(week).padStart(2, '0');
+                    }
                     break;
                 case 'month':
                     input.type = 'month';
                     input.name = 'period';
-                    label.querySelector('span').textContent = 'Month:';
+                    text.textContent = 'Month:';
+                    if (!input.value) {
+                        const now = new Date();
+                        input.value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+                    }
                     break;
             }
         }
     }
+    
+    function getWeekNumber(date) {
+        const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+        const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+        return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+    }
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', updatePeriodInput);
     </script>
 
     <style>
